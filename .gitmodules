@@ -1,0 +1,3 @@
+[submodule "lecture_notes"]
+	path = lecture_notes
+	url = https://github.com/gurtina/ASTR400B_2025
