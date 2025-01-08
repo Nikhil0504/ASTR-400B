@@ -25,8 +25,12 @@ jobs:
     - name: Update submodule
       run: |
         git submodule update --remote --merge
-        git add .
-        git commit -m "Daily update of submodule"
-        git push
+        if [-n "$(git status --porcelain)"]; then
+          git add .
+          git commit -m "Daily update of submodule"
+          git push
+        else
+          echo "No changes in submodule"
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
