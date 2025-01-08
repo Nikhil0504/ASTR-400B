@@ -1,34 +1,27 @@
 name: Update Submodules
 
-# Trigger the workflow on every push to the 'main' branch
 on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
   push:
     branches:
-      - main  # You can change this to any branch you want
+      - main # Adjust this to your default branch if different
 
 jobs:
-  update-submodules:
-    runs-on: ubuntu-latest  # The runner that will execute this job
+  update-submodule:
+    runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code and submodules
-      - name: Checkout code and submodules
-        uses: actions/checkout@v3
-        with:
-          submodules: 'true'  # This ensures submodules are checked out
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive # Recursively update submodules
 
-      # Step 2: Update submodules to the latest commit
-      - name: Update submodules
-        run: |
-          git submodule update --remote --merge --recursive
-          
-      # Step 3: Commit and push changes back to the repository
-      - name: Commit and push submodule updates
-        run: |
-          git add .
-          git commit -m "Automatically update submodule references"
-          git push
-        env:
-          # Set up GitHub token for authentication (this is needed to push changes back)
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub automatically provides this token
-
+    - name: Update submodule
+      run: |
+        git submodule update --remote --merge
+        git add .
+        git commit -m "Daily update of submodule"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
