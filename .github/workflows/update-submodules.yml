@@ -24,7 +24,7 @@ jobs:
 
     - name: Update submodule
       run: |
-        git submodule update --remote --merge
+        git submodule update --remote --force
         if [-n "$(git status --porcelain)"]; then
           git add .
           git commit -m "Daily update of submodule"
