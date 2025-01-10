@@ -2,10 +2,8 @@ name: Update Submodules
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs daily at midnight UTC
-  push:
-    branches:
-      - main # Adjust this to your default branch if different
+    - cron: '0 2 * * *'  # Runs at 2 AM every day
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   update-submodule:
@@ -13,24 +11,17 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
-        submodules: recursive # Recursively update submodules
-    
-    - name: Set up Git user
-      run: |
-        git config --global user.email "nikhilgaruda@live.com"
-        git config --global user.name "Nikhil Garuda"
+        submodules: true  # Fetch submodules
 
     - name: Update submodule
       run: |
-        git submodule update --remote --force
-        if [-n "$(git status --porcelain)"]; then
-          git add .
-          git commit -m "Daily update of submodule"
-          git push
-        else
-          echo "No changes in submodule"
-        fi
+        git submodule update --remote --merge
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Automated submodule update"
+        git push origin main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
