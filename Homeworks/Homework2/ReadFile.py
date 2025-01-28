@@ -1,9 +1,10 @@
 import numpy as np
 import astropy.units as u
 
+
 def Read(filename):
     # open the file
-    file = open(filename,'r')
+    file = open(filename, "r")
 
     # read the first line
     line1 = file.readline()
@@ -24,11 +25,21 @@ def Read(filename):
     return time, total_particles, data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Testing the function
-    time, total_particles, data = Read('../../MW_000.txt')
-    print('Time:', time)
-    print('Total Particles:', total_particles)
-    
+    time, total_particles, data = Read("../../MW_000.txt")
+    print("Time:", time)
+    print("Total Particles:", total_particles)
+
     # Test with second particle
-    print('Particle 2:', data['type'][1], data['m'][1], data['x'][1], data['y'][1], data['z'][1], data['vx'][1], data['vy'][1], data['vz'][1])
+    print(
+        "Particle 2:",
+        data["type"][1],
+        data["m"][1],
+        data["x"][1],
+        data["y"][1],
+        data["z"][1],
+        data["vx"][1],
+        data["vy"][1],
+        data["vz"][1],
+    )
