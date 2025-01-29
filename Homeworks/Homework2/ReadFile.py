@@ -2,7 +2,23 @@ import numpy as np
 import astropy.units as u
 
 
-def Read(filename):
+def Read(filename: str):
+    """Reads the data from a file and returns the time, total particles and the data.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file to read.
+
+    Returns
+    -------
+    time : astropy.units.quantity.Quantity
+        The time of the snapshot.
+    total_particles : int
+        The total number of particles in the snapshot.
+    data : numpy.ndarray
+        The data of the particles in the snapshot.
+    """
     # open the file
     file = open(filename, "r")
 
@@ -26,20 +42,22 @@ def Read(filename):
 
 
 if __name__ == "__main__":
+    # File path
+    fp = "../../MW_000.txt"
     # Testing the function
-    time, total_particles, data = Read("../../MW_000.txt")
+    time, total_particles, data = Read(fp)
     print("Time:", time)
     print("Total Particles:", total_particles)
 
     # Test with second particle
     print(
         "Particle 2:",
-        data["type"][1],
-        data["m"][1],
-        data["x"][1],
-        data["y"][1],
-        data["z"][1],
-        data["vx"][1],
-        data["vy"][1],
-        data["vz"][1],
+        data["type"][1], # type of particle
+        data["m"][1], # mass of particle
+        data["x"][1], # x position
+        data["y"][1], # y position
+        data["z"][1], # z position
+        data["vx"][1], # x velocity
+        data["vy"][1], # y velocity
+        data["vz"][1], # z velocity
     )

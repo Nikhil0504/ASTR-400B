@@ -4,7 +4,27 @@ import numpy as np
 import astropy.units as u
 
 
-def ParticleInfo(filename, part_type, part_num):
+def ParticleInfo(filename: str, part_type: int, part_num: int):
+    """Returns the distance, velocity, and mass of a particle.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file to read.
+    part_type : int
+        The type of the particle.
+    part_num : int
+        The number of the particle.
+    
+    Returns
+    -------
+    dist : astropy.units.quantity.Quantity
+        The distance of the particle. Rounded to 3 decimal places.
+    vel : astropy.units.quantity.Quantity
+        The velocity of the particle. Rounded to 3 decimal places.
+    mass : astropy.units.quantity.Quantity
+        The mass of the particle.
+    """
     _, _, data = Read(filename)
 
     # Extracting the data for the given particle type
@@ -31,9 +51,11 @@ def ParticleInfo(filename, part_type, part_num):
 
 
 if __name__ == "__main__":
+    # File path
+    fp = "../../MW_000.txt"
     # Testing the function
-    dist, vel, mass = ParticleInfo("../../MW_000.txt", 2, 100 - 1)
-    print("Distance:", dist)
-    print("Distance in lyr:", dist.to(u.lyr).round(3))
-    print("Velocity:", vel)
-    print("Mass:", mass)
+    dist, vel, mass = ParticleInfo(fp, 2, 100 - 1) # Particle 100 of type 2
+    print("Distance:", dist) # distance in kpc
+    print("Distance in lyr:", dist.to(u.lyr).round(3)) # distance in lyr, rounded to 3 decimal places
+    print("Velocity:", vel) # velocity in km/s
+    print("Mass:", mass) # mass in solar mass
