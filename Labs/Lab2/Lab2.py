@@ -288,8 +288,10 @@ def imf(m, m_min=0.1, m_max=120, alpha=2.35):
         norm_imf: float
             normalized fraction of stars at a given m
     """
-
-    norm_imf = 1.0 / quad(lambda x: x ** (-alpha), m_min, m_max)[0]
+    # Determine the normalization of the IMF
+    to_nomalize = quad(lambda x: x**(-alpha), m_min, m_max)
+    norm_imf = 1/to_nomalize[0]
+    norm_imf *= m**(-alpha)
 
     return norm_imf
 
@@ -316,4 +318,37 @@ print(f"Fraction of stars with mass > 10 Msun: {fraction[0]:.3f}")
 #
 # How might you modify the above to return the fraction of MASS in stars from 0.1Msun to 120 Msun ? instead of fraction of the total numbers of stars.
 
+def imf_Mass(m, m_min=0.1, m_max=120, alpha=2.35):
+    """Function that defines the IMF (default is Salpeter).
+    The function is normalized such that
+    it returns the fraction of mass within some radius
+    interval m_min to m_max.
 
+    Inputs:
+        m: array of floats
+            Array of stellar masses (Msun)
+
+        m_min:  float
+            minimum mass (Msun)
+
+        m_max : float
+            maximal mass (Msun)
+
+        alpha : float
+            power law. default is the Salpeter IMF
+
+    Output:
+        norm_imf_mass: float
+            normalized fraction of mass at a given m
+    """
+    # Determine the normalization of the IMF
+    to_nomalize = quad(lambda x: x*x**(-alpha), m_min, m_max)
+    norm_imf_mass = 1/to_nomalize[0]
+    norm_imf_mass *= m*m**(-alpha)
+
+    return norm_imf_mass
+
+
+# Determine the fraction of mass in stars with mass > 1 Msun
+frac2 = quad(lambda x: imf_Mass(x), 1, 120)
+print(f"Fraction of mass in stars with mass > 1 Msun: {frac2[0]:.3f}")
