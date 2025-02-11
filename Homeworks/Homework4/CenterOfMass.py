@@ -92,7 +92,7 @@ class CenterOfMass:
         return a_com, b_com, c_com
     
     
-    def COM_P(self, delta):
+    def COM_P(self, delta=0.1):
         '''Method to compute the position of the center of mass of the galaxy 
         using the shrinking-sphere method.
 
@@ -143,11 +143,11 @@ class CenterOfMass:
         while (change > delta):
             # select all particles within the reduced radius (starting from original x,y,z, m)
             # write your own code below (hints, use np.where)
-            index2 = np.where(r_new <= r_max)
-            x2 = self.data['x'][index2]
-            y2 = self.data['y'][index2]
-            z2 = self.data['z'][index2]
-            m2 = self.data['m'][index2]
+            index2 = np.where(r_new <= r_max)[0]
+            x2 = self.x[index2]
+            y2 = self.y[index2]
+            z2 = self.z[index2]
+            m2 = self.m[index2]
 
             # Refined COM position:                                                                                    
             # compute the center of mass position using                                                                
@@ -234,10 +234,10 @@ class CenterOfMass:
         
         # determine the velocity and mass of those particles within the mas radius
         # write your own code below
-        vx_new = self.data['vx'][indexV]
-        vy_new = self.data['vy'][indexV]
-        vz_new = self.data['vz'][indexV]
-        m_new =  self.data['m'][indexV]
+        vx_new = self.vx[indexV]
+        vy_new = self.vy[indexV]
+        vz_new = self.vz[indexV]
+        m_new =  self.m[indexV]
         
         # compute the center of mass velocity using those particles
         # write your own code below
@@ -266,9 +266,9 @@ if __name__ == '__main__' :
     # below gives you an example of calling the class's functions
     # MW:   store the position and velocity COM
     MW_COM_p = MW_COM.COM_P(0.1)
-    print(MW_COM_p)
+    # print(MW_COM_p)
     MW_COM_v = MW_COM.COM_V(MW_COM_p[0], MW_COM_p[1], MW_COM_p[2])
-    print(MW_COM_v)
+    # print(MW_COM_v)
 
     # now write your own code to answer questions
 
