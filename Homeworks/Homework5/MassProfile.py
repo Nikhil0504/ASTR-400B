@@ -26,10 +26,10 @@ class MassProfile:
         ilbl = '000' + str(self.snap)
         # remove all but the last 3 digits
         ilbl = ilbl[-3:]
-        self.filename = "%s_"%(self.gname) + ilbl + '.txt'
+        self.filename = "../../Data/%s_"%(self.gname) + ilbl + '.txt'
 
         # Read the data
-        self.data = self.read_data()
+        self.data = self._read_data()
 
         # extract x, y, z, m
         self.x = self.data['x'] * u.kpc
@@ -38,7 +38,7 @@ class MassProfile:
 
         self.m = self.data['m']
     
-    def read_data(self):
+    def _read_data(self):
         """ Read the data from the file
 
         Returns
@@ -85,7 +85,7 @@ class MassProfile:
         for i in range(len(r)):
             # sum the mass of all particles within the radius
             # multiply by 1e10 for the mass to be correct
-            mass_encolosed[i] = np.sum(mass_type[radii < r[i] * u.kpc]) * 1e10
+            mass_encolosed[i] = np.sum(mass_type[radii.value < r[i]]) * 1e10
         
         mass_encolosed = mass_encolosed * u.Msun
 
@@ -109,7 +109,7 @@ class MassProfile:
         # create an array to store the mass enclosed
         mass_encolosed = np.zeros(r.size) * u.Msun
 
-        for i_type in range(1, 4):
+        for i_type in range(1, 4): # 1 = halo, 2 = disk, 3 = bulge
             # no bulge for M33
             if self.gname == 'M33' and i_type == 3:
                 continue
@@ -119,6 +119,7 @@ class MassProfile:
     
     def HernquistMass(self, r, a, Mhalo):
         """Calculate the Hernquist mass profile.
+        M(r) = Mhalo * r^2 / (a + r)^2
 
         Parameters
         ----------
@@ -137,7 +138,8 @@ class MassProfile:
         # convert to the correct units
         r = r * u.kpc
         a = a * u.kpc
-        numerator = Mhalo * 1e12 * u.Msun * r**2
+        Mhalo = Mhalo * 1e12 * u.Msun
+        numerator = Mhalo * r**2
         denominator = (a + r)**2
 
         mass_profile = numerator / denominator
@@ -160,7 +162,12 @@ class MassProfile:
         circular_vel: astropy.units.Quantity
             Array of circular speeds, units km/s
         """
-        mass_enc = self.MassEnclosed(ptype, r) # mass enclosed within the radius
+        
+        # mass enclosed within the radius
+        mass_enc = self.MassEnclosed(ptype, r) 
+
+        # convert after mass enclosed since it doesn't require units
+        r = r * u.kpc
 
         # v_circular = sqrt(G * M / r)
         circular_vel = np.sqrt(G * mass_enc / r)
@@ -188,13 +195,12 @@ class MassProfile:
         tot_cir_vel: astropy.units.Quantity
             Array of total circular velocity, units km/s
         """
-        tot_cir_vel = np.zeros(r.size) 
-        
-        # convert units
-        r *= u.kpc
 
         total_mass_enc = self.MassEnclosedTotal(r)
 
+        # convert units
+        r *= u.kpc
+        
         total_cir_vel = np.sqrt(G * total_mass_enc / r).to(u.km/u.s)
 
         return np.around(total_cir_vel.value, 2) * u.km/u.s
@@ -225,7 +231,7 @@ class MassProfile:
         a = a * u.kpc
 
         # v_circular = sqrt(G * M / r)
-        circular_vel = np.sqrt(G * hern_mass / r * (a / (a + r)))
+        circular_vel = np.sqrt(G * hern_mass / r)
 
         # convert to km/s
         circular_vel = circular_vel.to(u.km/u.s)
