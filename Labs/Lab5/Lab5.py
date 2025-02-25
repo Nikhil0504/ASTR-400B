@@ -237,16 +237,16 @@ plt.plot(np.log10(mh), np.log10(MosterZ0.StellarMass()),
 # Continue plotting for the other redshifts here
 # Plot z = 0.5
 plt.plot(np.log10(mh), np.log10(MosterZ05.StellarMass()),
-         linewidth = 5, label='z=0.5')
+         linewidth = 5, label='z=0.5', ls='-.')
 
 # Plot z = 1
 plt.plot(np.log10(mh), np.log10(MosterZ1.StellarMass()),
-         linewidth = 5, label='z=1')
+         linewidth = 5, label='z=1', ls='--')
 
 
 # Plot z = 2
 plt.plot(np.log10(mh), np.log10(MosterZ2.StellarMass()),
-         linewidth = 5, label='z=2')
+         linewidth = 5, label='z=2', ls=':')
 
 
 # Axes labels 
@@ -276,9 +276,25 @@ plt.savefig('AbundanceMatching_Lab5.png')
 # ## C) 
 # What is the $\Lambda$CDM expected halo mass for the LMC (using Abundance Matching)?  
 
+# LMC Halo Mass
+haloLMC1 = 3e10 # traditional halo mass (model)
 
+# Abundance Matching 
+LMC1 = AbundanceMatching(haloLMC1, 0)
 
+#Stellar Mass
+LMC1star = LMC1.StellarMass()
 
+print(f"The stellar mass of the LMC halo at z=0 is {LMC1star:.2e}")
+print(f"{LMC1star/3e9*100:.2f}% of the observed stellar mass of the LMC")
+
+# say we know that LMC stellar mass = 3e9 Msun
+# what the halo mass should be?
+haloLMC2 = 17e10
+LMC2 = AbundanceMatching(haloLMC2, 0)
+LMC2star = LMC2.StellarMass()
+print(f"The stellar mass of the LMC halo at z=0 is {LMC2star:.2e}")
+print(f"{LMC2star/3e9*100:.2f}% of the observed stellar mass of the LMC")
 
 
 # # Q2
@@ -289,7 +305,21 @@ plt.savefig('AbundanceMatching_Lab5.png')
 # ## B)
 # What is the expected stellar mass of an L* galaxy at z = 2? 
 
+# Find characteristic mass for z=0
+M1halo_z0 = MosterZ0.logM1()
+print(f"The characteristic log mass (M1) for z=0 is {M1halo_z0:.2f}")
+
+# Find the stellar mass of an L* galaxy at z=0
+Lstar_z0 = AbundanceMatching(10**M1halo_z0,0)
+LstarMass_z0 = Lstar_z0.StellarMass()
+print(f"The stellar log mass of an L* galaxy at z=0 is {np.log10(LstarMass_z0):.2f}")
 
 
+# Find characteristic mass for z=2
+M1halo_z2 = MosterZ2.logM1()
+print(f"The characteristic log mass (M1) for z=2 is {M1halo_z2:.2f}")
 
-
+# Find the stellar mass of an L* galaxy at z=2
+Lstar_z2 = AbundanceMatching(10**M1halo_z2,2)
+LstarMass_z2 = Lstar_z2.StellarMass()
+print(f"The stellar log mass of an L* galaxy at z=2 is {np.log10(LstarMass_z2):.2f}")
