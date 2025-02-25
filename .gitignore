@@ -173,3 +173,14 @@ cython_debug/
 .DS_Store
 
 Data/
+
+# latex stuff
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fdb_latexmk
+*.synctex.gz
+*.fls
+*.toc
