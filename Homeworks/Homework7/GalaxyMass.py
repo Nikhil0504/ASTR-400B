@@ -22,12 +22,12 @@ def ComponentMass(filename, ptype):
         
         """
     # Read in the file
-    time, total, data = Read(filename)
+    _, _, data = Read(filename)
 
     # finding all the indices in the data corresponding to particle type
     index = np.where(data["type"] == ptype)  
 
-    mass = data["m"][index] / 1e12  
+    mass = data["m"][index] / 100
 
     # total masses of the particles to get the total mass of the galaxy component.
     total_mass = np.round(np.sum(mass), 3)  
