@@ -9,6 +9,16 @@
 # Surface density profile - sersic profile estimator 
 # (heavily based on Lab 6 and Homework 5)
 
+# STEPS:
+# 1. Load the data for M31 and MW
+# 2. Create a center of mass object for M31 and MW for disk, bulge, and halo
+# 3. Concatenate the data for the bulge, disk, and halo
+# 4. Change the particle positions into cylindrical coordinates
+# 5. Define the surface mass density profile
+# 6. Define the sersic profile estimator
+# 7. Fit the sersic profile to the surface mass density profile
+# 8. Plot the surface mass density profile and the sersic profile
+
 # Load Modules
 import numpy as np
 import matplotlib.pyplot as plt
@@ -121,4 +131,158 @@ def sersicE(r, re, n, mtot):
     # surface brightness profile
     I = Ie * np.exp(b)
     
+    # $ L = 7.2 I_e \pi R_e^2$
     return I
+
+# Get center of mass object for M31 and MW for disk, bluge, and halo
+# Concatinate the data for the bulge, disk, and halo
+# Change the particle positions into cylindrical coordinates
+M31_COM_bulge = CenterOfMass('M31_000.txt', 3)
+
+# Use the center of mass object to 
+# store the x, y, z, positions and mass of the bulge particles
+# be sure to correct for the COM position of M31
+M31_COM_p = M31_COM_bulge.COM_P(0.1)
+
+x = M31_COM_bulge.x - M31_COM_p[0].value
+y = M31_COM_bulge.y - M31_COM_p[1].value
+z = M31_COM_bulge.z - M31_COM_p[2].value
+m = M31_COM_bulge.m # units of 1e10 Msun
+
+cyl_r = np.sqrt(x**2 + y**2) # radial
+cyl_theta = np.arctan2(y,x) # theta
+
+
+# Define surface mass density profile
+r_annuli, sigma = SurfaceDensity(cyl_r, m)
+
+
+# Get mass profile for M31
+M31_mass = MassProfile('M31', 0)
+
+# Get the effective radius of the bulge particles
+# Compute the total mass using Component Mass, 
+# from the GalaxyMass code, and find the radius 
+# that contains half this mass. 
+bulge_mass = M31_mass.massEnclosed(3, r_annuli).value
+
+# Determine the total mass of the bulge
+bulge_total = ComponentMass('M31_000.txt', 3) * 1e12
+
+# Find the effective radius of the bulge, 
+# Re encloses half of the total bulge mass
+
+# Half the total bulge mass
+b_half = bulge_total / 2
+
+
+# Find the indices where the bulge mass is larger than b_half
+index = np.where(bulge_mass > b_half)
+
+# take first index where Bulge Mass > b_half
+# Define the Effective radius of the bulge
+re_bulge = r_annuli[index[0][0]] * 3/4
+
+# d) Define the Sersic Profile for the M31 Bulge
+# Sersic Index = 4
+SersicM31Bulge = sersicE(r_annuli, re_bulge, 4, bulge_total)
+
+
+# fit
+def fit_sersic_profile(r_data, sigma_data, p0=None):
+    """
+    Fit a Sersic profile to surface density data
+    
+    Parameters:
+    -----------
+    r_data : array
+        Radial distances (kpc)
+    sigma_data : array
+        Surface density values (10^10 Msun/kpc^2)
+    p0 : tuple, optional
+        Initial guesses for (re, n, mtot)
+        
+    Returns:
+    --------
+    popt : array
+        Best-fit parameters [re, n, mtot]
+    pcov : 2D array
+        Covariance matrix for the parameters
+    """
+    # If no initial guesses provided, use reasonable defaults
+    if p0 is None:
+        # Starting with the values you already have as initial guesses
+        p0 = [re_bulge, 4.0, bulge_total]
+    
+    # Convert sigma to absolute units (matching what sersicE returns)
+    sigma_abs = sigma_data * 1e10  # Convert to Msun/kpc^2
+    
+    # Define bounds for parameters (all positive)
+    bounds = ([0.1, 0.5, bulge_total*0.5], [30, 10, bulge_total*1.5])
+    
+    # Perform the fit
+    # Note: we're fitting to the log of the data to handle the large dynamic range
+    popt, pcov = optimize.curve_fit(
+        sersicE, 
+        r_data, 
+        sigma_abs, 
+        p0=p0,
+        bounds=bounds,
+    )
+    
+    return popt, pcov
+
+init_guess = [re_bulge, 4.0, bulge_total]
+popt, pcov = fit_sersic_profile(r_annuli, sigma, p0=init_guess)
+# Extract the best-fit parameters
+re_fit, n_fit, mtot_fit = popt
+perr = np.sqrt(np.diag(pcov))
+print(f"\nBest-fit Sersic Parameters:")
+print(f"Effective Radius (re): {re_fit:.2f} kpc")
+print(f"Sersic Index (n): {n_fit:.2f}")
+print(f"Total Mass: {mtot_fit:.2e} Msun")
+print(f"\nParameter Uncertainties:")
+print(f"ΔRe: {perr[0]:.2f} kpc")
+print(f"Δn: {perr[1]:.2f}")
+print(f"ΔMtot: {perr[2]:.2e} Msun")
+
+# calculate the Sersic profile with the best-fit parameters
+SersicM31Bulge_fit = sersicE(r_annuli, re_fit, n_fit, mtot_fit)
+
+
+fig, ax = plt.subplots(figsize=(9, 8))
+
+#adjust tick label font size
+label_size = 22
+matplotlib.rcParams['xtick.labelsize'] = label_size 
+matplotlib.rcParams['ytick.labelsize'] = label_size
+
+
+# Surface Density Profile
+# YOU ADD HERE
+ax.loglog(r_annuli, sigma, linewidth=2, label='Simulated Bulge')
+
+
+# Sersic fit to the surface brightness Sersic fit
+# YOU ADD HERE
+ax.loglog(r_annuli, SersicM31Bulge/1e10, linewidth=2, label='Sersic Fit')
+
+ax.loglog(r_annuli, SersicM31Bulge_fit/1e10, linewidth=2, label='Sersic Fit (Best Fit)')
+
+
+plt.xlabel('log r [kpc]', fontsize=22)
+
+# note the y axis units
+plt.ylabel(r'log $\Sigma_{bulge}$ [$10^{10} M_\odot$ / kpc$^2$]', 
+          fontsize=22)
+
+plt.title('M31 Bulge', fontsize=22)
+
+#set axis limits
+plt.xlim(1,50)
+plt.ylim(1e-5,0.1)
+
+ax.legend(loc='best', fontsize=22)
+fig.tight_layout()
+
+plt.show()
