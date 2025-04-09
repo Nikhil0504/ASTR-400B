@@ -138,15 +138,19 @@ def sersicE(r, re, n, mtot):
 # Concatinate the data for the bulge, disk, and halo
 # Change the particle positions into cylindrical coordinates
 M31_COM_bulge = CenterOfMass('M31_000.txt', 3)
+M31_COM_disk = CenterOfMass('M31_000.txt', 2)
+M31_COM_halo = CenterOfMass('M31_000.txt', 1)
 
 # Use the center of mass object to 
 # store the x, y, z, positions and mass of the bulge particles
 # be sure to correct for the COM position of M31
-M31_COM_p = M31_COM_bulge.COM_P(0.1)
+M31_COM_p_bulge = M31_COM_bulge.COM_P(0.1)
+M31_COM_p_disk = M31_COM_disk.COM_P(0.1)
+M31_COM_p_halo = M31_COM_halo.COM_P(0.1)
 
-x = M31_COM_bulge.x - M31_COM_p[0].value
-y = M31_COM_bulge.y - M31_COM_p[1].value
-z = M31_COM_bulge.z - M31_COM_p[2].value
+x = M31_COM_bulge.x - M31_COM_p_bulge[0].value
+y = M31_COM_bulge.y - M31_COM_p_bulge[1].value
+z = M31_COM_bulge.z - M31_COM_p_bulge[2].value
 m = M31_COM_bulge.m # units of 1e10 Msun
 
 cyl_r = np.sqrt(x**2 + y**2) # radial
