@@ -41,7 +41,7 @@ class MassProfile:
         # remove all but the last 3 digits
         ilbl = ilbl[-3:]
         # create filenames
-        self.filename='%s_'%(galaxy) + ilbl + '.txt'
+        self.filename='../../Data/' + '%s_'%(galaxy) + ilbl + '.txt'
         
         # read the particle data                                                                                             
         self.time, self.total, self.data = Read(self.filename)
