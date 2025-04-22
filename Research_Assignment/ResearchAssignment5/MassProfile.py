@@ -100,17 +100,29 @@ class MassProfile:
         # store mass of particles of a given ptype
         mG = self.m[index]
             
-        # Array to store enclosed mass as a function of the 
-        #input radius array
-        m_enc = np.zeros(np.size(radii))
-        # equivalently: 
-        # m_enc = np.zeros_like(radii)
-    
-        # loop through the radii array
-        for i in range(np.size(radii)):
-            # Only want particles within the given radius
-            indexR = np.where(rG <  radii[i]*u.kpc)
-            m_enc[i] = np.sum(mG[indexR])         
+        # Sort radii and ensure numpy array
+        radii = np.array(radii)
+        sort_idx = np.argsort(radii)
+        radii_sorted = radii[sort_idx]
+
+        # Sort particles by radius
+        sort_rG = np.argsort(rG)
+        rG_sorted = rG[sort_rG]
+        mG_sorted = mG[sort_rG]
+
+        # Cumulative mass
+        mG_cumsum = np.cumsum(mG_sorted)
+
+        # Searchsorted: for each radius, find how many particles are within it
+        inds = np.searchsorted(rG_sorted.value, radii_sorted)
+
+        # Get cumulative mass up to that index
+        m_enc_sorted = mG_cumsum[inds - 1]
+        m_enc_sorted[inds == 0] = 0  # handle edge case where no particles within radius
+
+        # Unsort to return in same order as input radii
+        m_enc = np.empty_like(m_enc_sorted)
+        m_enc[sort_idx] = m_enc_sorted         
         
         # return the array of enclosed mass with appropriate units
         return m_enc*u.Msun*1e10
