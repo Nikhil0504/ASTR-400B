@@ -22,7 +22,7 @@ import matplotlib
 #################
 # Lab 12 : 
 # tool for numerical integration from SciPy  
-from scipy.integrate import simps
+from scipy.integrate import simpson
 
 #Import the constant for the speed of light
 from astropy.constants import c
@@ -287,7 +287,7 @@ class CosmologicalTools:
     # Lab 12 Starts Here
     ###########################
     
-    
+  
     # Question 1 A) 
     
     def LookBackTime(self, ze):
@@ -309,7 +309,7 @@ class CosmologicalTools:
 
         
         # Observed redshift - today
-        zo = 0.0
+        zo = 0
     
         # define an array with redshifts, spaced in intervals of 0.001 from zo to ze
         zrange = np.arange(zo, ze, 1e-3)
@@ -320,12 +320,11 @@ class CosmologicalTools:
         # But need to correct units of 1/H to be Gyr rather than seconds  
         # use the astropy.units functionality .to(units)
         # FILL THIS IN 
-        
+        y = (1.0/self.HubbleParameter(zrange)).to(u.Gyr)/(1+zrange) 
         
         # Integrate y numerically over zrange and return in units of Gyr
         # FILL THIS IN 
-        LBtime = simps(y, zrange)
-        LBtime = LBtime.to(u.Gyr)
+        LBtime = simpson(y, zrange)*u.Gyr
         
         return LBtime
     
@@ -359,13 +358,13 @@ class CosmologicalTools:
         # Integrand
         # 1/H(zrange)*speed of light
         # Speed of light is loaded in modules from astropy, but in units of m/s --> need in km/s
-        # FILL THIS IN
-    
+        c_kms = c.to(u.km/u.s) #speed of light in km/s
         
-    
+        y = c_kms/self.HubbleParameter(zrange)
+        
         # Integrate y numerically over zrange and return in units of Mpc
-        # FILL THIS IN 
-        DC = 0
+        
+        DC = simpson(y, zrange)*u.Mpc
         
         return DC 
     
@@ -394,12 +393,11 @@ class CosmologicalTools:
         """
     
         # Comoving Distance[ independent of time] x the scale factor at the time of observation.
-        # FILL THIS IN 
-        DH = 0
+        DH = self.ComovingDistance(zo, ze)/(1+zo)
         
         return DH 
 
- 
+    
     # Question 3 A)
     
     def LuminosityDistance(self, ze): 
@@ -407,7 +405,7 @@ class CosmologicalTools:
     # Input:    Redshift emitted (ze) 
     # Output:   DL  in Mpc
         """ Method that computes the Luminosity Distance to an object at some redshift (ze)
-               DL = DC*(1+zobs)
+               DL = DC*(1+ze)
             
         PARAMETERS
         --------- 
@@ -420,8 +418,8 @@ class CosmologicalTools:
             Luminosity Distance (Mpc)
         """
 
-        # FILL THIS IN
-        DL = 0
+        zo = 0 #observer today
+        DL = self.ComovingDistance(zo, ze)*(1+ze)
         
         return  DL
     
@@ -446,8 +444,8 @@ class CosmologicalTools:
             Angular Diameter Distance (Mpc)
         """
     
-        #  FILL THIS IN
-        DA = 0 
+        zo = 0
+        DA = self.ComovingDistance(zo, ze)/(1+ze)
         
         return  DA   
     
@@ -475,11 +473,11 @@ class CosmologicalTools:
         
         # convert angle from arcsec to radians
         angleRad = (angle*u.arcsec).to(u.rad)
+        
     
-        # FILL THIS IN
-        size = 0
+        size = self.AngularDiameterDistance(ze)* angleRad.value
     
-        return size
+        return size.to(u.kpc)
     
     
 
@@ -515,13 +513,13 @@ OmegaLD = 0
 
 
 # Define here an instance of the Class Cosmological Tools that follows the Benchmark Cosmology
-
+BenchMark = CosmologicalTools(OmegaM0_planck, OmegaR0_planck, OmegaL0_planck, h_planck)
 
 # In[ ]:
 
 
 # Define a New Instance of the Class with Einstein De Sitter Cosmology 
-
+DeSitter = CosmologicalTools(OmegaMD, OmegaRD, OmegaLD, h_planck)
 
 # ##  Question 1 B) 
 
@@ -531,7 +529,7 @@ OmegaLD = 0
 # Question 1 B) 
 
 # How many Gyr ago was z=1 in the Benchmark cosmology?
-
+print(BenchMark.LookBackTime(1))
 
 # In[ ]:
 
@@ -539,18 +537,18 @@ OmegaLD = 0
 # Question 1 B) 
 
 # What is the Age of the Universe in the Benchmark Cosmology  (put in a large z)
-
+print(BenchMark.LookBackTime(1e3))
 
 # In[ ]:
 
 
 # What is the Age of the Universe in the Einstein De Sitter Cosmology
-
+DeSitter.LookBackTime(1e3)
 
 # In[ ]:
 
 
-# Which is younger?
+# Which is younger? -- DeSitter by 4 Gyr (ish)
 
 
 # ## Question 1 C) 
@@ -584,11 +582,11 @@ zrange = np.arange(zmin, zmax, 0.01)
 
 # Create a list comprehension to compute an array of Look Back Time for each element in zrange
 # NOTE THIS GENERATES A LIST NOT AN ARRAY
-
+TimeBenchMark = [BenchMark.LookBackTime(i).value for i in zrange]
 
 # In[ ]:
 
-
+TimeDeSitter = [DeSitter.LookBackTime(i).value for i in zrange]
 
 
 
@@ -604,12 +602,12 @@ ax = plt.subplot(111)
 
 # Look Back Time Benchmark
 # FILL THIS IN
-#plt.semilogx(### , ###  color='blue', linewidth=5, label='Benchmark')
+plt.semilogx(1+zrange, TimeBenchMark,  color='blue', linewidth=5, label='Benchmark')
 
 
 # Look Back Time Einstein De Sitter
 # FILL THIS IN
-#plt.semilogx(### ,  ####, color='red', linewidth=5, label='DeSitter')
+plt.semilogx(1+zrange, TimeDeSitter, color='red', linewidth=5, label='DeSitter')
 
 
 # Add axis labels
@@ -624,7 +622,7 @@ matplotlib.rcParams['ytick.labelsize'] = label_size
 legend = ax.legend(loc='upper left',fontsize=20)
 
 # Save to a file
-plt.savefig('Lab12_LookBackTime.png')
+#plt.savefig('Lab12_LookBackTime.png')
 
 
 # ## Question 2 C)
@@ -636,25 +634,26 @@ plt.savefig('Lab12_LookBackTime.png')
 
 # What is the size of the presently observable universe in the Benchmark cosmology ? (pick a large z)
 
+print(np.round(BenchMark.ProperDistance(0, 1e3), 2))
 
 # In[ ]:
 
 
 # Double Check that the size of the Comoving Distance and Proper Distance are the same
 # since the observer is at z=0 
-
+print(np.round(BenchMark.ComovingDistance(0, 1e3), 2))
 
 # In[ ]:
 
 
 # What is the size of the presently observable universe in the Einstein De Sitter cosmology? (pick a large z)
 
-
+print(np.round(DeSitter.ComovingDistance(0, 1e3), 2))
 # In[ ]:
 
 
 # Which Universe is larger? 
-
+    #Benchmark
 
 # ## Question 2 D)
 
@@ -664,6 +663,8 @@ plt.savefig('Lab12_LookBackTime.png')
 # Consider two closely located 
 # galaxies on the sky, where one galaxy
 # is  at z=0.01 and the second galaxy is at z =0.05 
+z1 = 0.01
+z2 = 0.05
 
 
 # In[ ]:
@@ -672,12 +673,17 @@ plt.savefig('Lab12_LookBackTime.png')
 # What is Radial Distance between these galaxies today (z=0)? 
 # This is equivalent to the Comoving Distance or Proper Distance between the galaxies
 
+dist_z1 = BenchMark.ProperDistance(0, z1) #distance to galaxy 1
+dist_z2 = BenchMark.ProperDistance(0, z2) #distance to galazy 2
 
+#seperation
+diff = dist_z2 - dist_z1
+print(np.round(diff))
 # In[ ]:
 
 
 # What is the Proper Distance between these two galaxies as measured by galaxy 1 (at z=0.01)?
-
+print(np.round(BenchMark.ProperDistance(z1, z2)))
 
 # ## Question 2 E)
 
@@ -685,13 +691,13 @@ plt.savefig('Lab12_LookBackTime.png')
 
 
 # What is the size of the observable universe at z=2? 
-
+print(np.round(BenchMark.ProperDistance(2, 1e3)))
 
 # In[ ]:
 
 
 # how much larger was the universe then vs now?
-
+#about a factor of 5
 
 # ##  Question 2 F)
 # Plot the Horizon Distance as a Function of Redshift out to z=10 for the BenchMark and Einstein DeSitter Cosmology
@@ -710,7 +716,8 @@ zrange2 = np.arange(zmin, zmax, 0.5)
 
 # What is the size of the universe at each redshit in each cosmology
 # We need to again use a list comprehension 
-
+HorizonBenchmark = [BenchMark.ProperDistance(i, 1e3).value for i in zrange2]
+HorizonDeSitter = [DeSitter.ProperDistance(i, 1e3).value for i in zrange2]
 
 # In[ ]:
 
@@ -724,9 +731,9 @@ ax = plt.subplot(111)
 
 # Comoving Distance
 # FILL THIS IN
-#plt.semilogy(###, ### , linewidth=5, label='BenchMark')
+plt.semilogy(zrange2+1, HorizonBenchmark, linewidth=5, label='BenchMark')
 
-#plt.semilogy(### , ###  , linewidth=5, linestyle='--', label='DeSitter')
+plt.semilogy(zrange2+1 , HorizonDeSitter, linewidth=5, linestyle='--', label='DeSitter')
 
 
 # Add axis labels
@@ -760,6 +767,8 @@ plt.savefig('Lab12_HorizonDistance.png')
 
 # Question 3 B) 
 
+m = 25.1 #apparent magnitude
+M = -19.3 #absolute magnitude for type 1a supernove
 
 # In[ ]:
 
@@ -767,19 +776,20 @@ plt.savefig('Lab12_HorizonDistance.png')
 # What is the Luminosity Distance? 
 # m-M = 5*log(DL/Mpc) + 25
 
-
+DLSne = np.round(10**((m-M - 25)/5), 1)*u.Mpc
+print(DLSne)
 # In[ ]:
 
 
 # Now reverse engineer the problem. What redshift gives you the computed Luminosity Distance? 
 # in reality the redshift is determined by identifying the redshift of the host.  
-
+print(BenchMark.LuminosityDistance(1.0944))
 
 # In[ ]:
 
 
 # What is the proper distance to this supernova given our current rate of expansion? 
-
+zSNE = 1.0944
 
 # ## Question 4 C) 
 
@@ -790,10 +800,10 @@ plt.savefig('Lab12_HorizonDistance.png')
 
 # Angle = Size/DA
 # What is the separation between two galaxies separated by 1 arcsec at z=1 in the Benchmark Cosmology
-
+sep = np.round(BenchMark.Size(1, 1), 1)
+print(sep)
 
 # In[ ]:
-
 
 
 
